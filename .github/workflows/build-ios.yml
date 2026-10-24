@@ -34,7 +34,8 @@ jobs:
 
       - name: 降低 project.yml 的 Xcode 版本要求（runner 上的 Xcode 一般 < 27）
         working-directory: apps/house-capture
-        run: sed -i '' 's/xcodeVersion: "27.0"/xcodeVersion: "16.0"/' project.yml
+        run: |
+          sed -i '' 's/xcodeVersion: "27.0"/xcodeVersion: "16.0"/' project.yml
 
       - name: 生成 Xcode 工程
         working-directory: apps/house-capture
