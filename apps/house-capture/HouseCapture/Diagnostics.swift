@@ -138,7 +138,7 @@ struct AutoTestView: View {
         CaptureScreen(controller: controller) {}
           .task { await run(controller) }
       } else {
-        Text(failure ?? "Starting…").padding()
+        Text(failure ?? "正在开始…").padding()
       }
     }
     .task { setUp() }

@@ -66,7 +66,7 @@ struct CaptureScreen: View {
           Task { await controller.finishSession() }
         }
       }
-      Button(controller.rooms.isEmpty ? "丢弃会话" : "Discard session and its \(controller.rooms.count) room\(controller.rooms.count == 1 ? "" : "s")", role: .destructive) {
+      Button(controller.rooms.isEmpty ? "丢弃会话" : "丢弃会话及其 \(controller.rooms.count) 个房间", role: .destructive) {
         controller.abandon()
         onClose()
       }
@@ -114,11 +114,11 @@ struct CaptureScreen: View {
           VStack(alignment: .trailing, spacing: 2) {
             if scanning {
               Text(controller.roomName).font(.headline)
-              Text(controller.meshReady ? "\(controller.coverage.walls.count) walls measured" : "Starting LiDAR…")
+              Text(controller.meshReady ? "已测量 \(controller.coverage.walls.count) 面墙" : "正在启动 LiDAR…")
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.secondary)
             }
-            Text("\(controller.rooms.count) room\(controller.rooms.count == 1 ? "" : "s") · \(controller.photoCount) photos")
+            Text("\(controller.rooms.count) 个房间 · \(controller.photoCount) 张照片")
               .font(.caption.monospacedDigit())
             if controller.phase != .relocalizing {
               HStack(spacing: 6) {
@@ -202,7 +202,7 @@ struct CaptureScreen: View {
     panel {
       if controller.rooms.isEmpty {
         if controller.alignment.method == "relocalized" {
-          Text("You're lined up with \(controller.zoneName). The faint green is what you scanned before\(controller.priorPhotoCount > 0 ? "; surfaces its \(controller.priorPhotoCount) photos already cover start out green" : ""). Scan a new room, or rescan one to replace it.")
+          Text("你已与 \(controller.zoneName) 对齐。浅绿色是你之前扫描过的部分\(controller.priorPhotoCount > 0 ? "；它已有的 \(controller.priorPhotoCount) 张照片覆盖的表面一开始就是绿色" : "")。可以扫描一个新房间，或重扫一个房间以替换它。")
             .font(.subheadline)
         } else {
           Text("每个房间扫描一次：移动时会出现三角网格。**绿色**表示照片覆盖良好（包括已对齐的早前扫描）。**红色**需要更多照片。没有三角网格的区域仍需要扫描。白色轮廓是正在测量的墙体、门和窗。**拍照细节**衡量 LiDAR 已观测表面上的拍照情况，并非房间被扫描的百分比。保存后检查遗漏区域。")
@@ -266,7 +266,7 @@ struct CaptureScreen: View {
       Button {
         controller.startRoom()
       } label: {
-        Label(controller.canStartRoom ? "Scan \(controller.roomName)" : "请先命名房间以开始", systemImage: "viewfinder")
+        Label(controller.canStartRoom ? "扫描 \(controller.roomName)" : "请先命名房间以开始", systemImage: "viewfinder")
           .frame(maxWidth: .infinity)
       }
       .buttonStyle(.borderedProminent)
@@ -584,7 +584,7 @@ struct CoverageRing: View {
 private struct Legend: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 2) {
-      ForEach([(Color.red, "needs photos"), (.green, "captured")], id: \.1) { color, label in
+      ForEach([(Color.red, "需要照片"), (.green, "已拍摄")], id: \.1) { color, label in
         HStack(spacing: 4) {
           Circle().fill(color).frame(width: 7, height: 7)
           Text(label).font(.system(size: 9))

@@ -231,9 +231,9 @@ private struct HouseRow: View {
 
   private var summary: String {
     let rooms = house.rooms.count, sessions = house.sessions.count
-    var s = "\(rooms) room\(rooms == 1 ? "" : "s") · \(sessions) session\(sessions == 1 ? "" : "s")"
-    if house.zones.count > 1 { s += " · \(house.zones.count) areas" }
-    if let last = house.sessions.map(\.startedAt).max() { s += " · last \(last.formatted(date: .abbreviated, time: .shortened))" }
+    var s = "\(rooms) 个房间 · \(sessions) 次会话"
+    if house.zones.count > 1 { s += " · \(house.zones.count) 个区域" }
+    if let last = house.sessions.map(\.startedAt).max() { s += " · 最近于 \(last.formatted(date: .abbreviated, time: .shortened))" }
     return s
   }
 }

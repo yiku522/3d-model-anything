@@ -96,7 +96,7 @@ struct RoomConnection: View {
     Picker(title, selection: selection) {
       Text("选择门洞").tag("")
       ForEach(Array(doors.enumerated()), id: \.element.id) { i, door in
-        Text(String(format: "Doorway %d · %.2f m wide", i+1, door.width)).tag(door.id)
+        Text(String(format: "门洞 %d · 宽 %.2f 米", i+1, door.width)).tag(door.id)
       }
     }
   }

@@ -249,7 +249,7 @@ final class PreviewModel: ObservableObject {
         let sessionPhotos = photos.filter {
           $0.session == asset.room.session || (isAligned && alignedSessions.contains($0.session))
         }
-        bakeLabel = todo.count > 1 ? "Coloring \(asset.room.name)" : "Coloring from photos"
+        bakeLabel = todo.count > 1 ? "正在给\(asset.room.name)上色" : "正在根据照片上色"
         let base = Double(k) / Double(todo.count), span = 1 / Double(todo.count)
         // Retain the small vertex-color cache as a quick fallback for occluded/unseen faces.
         if asset.photoColors == nil {
@@ -662,7 +662,7 @@ struct PreviewScreen: View {
         Section("会话") {
           ForEach(model.sessions) { s in
             Toggle(isOn: Binding(get: { model.isSessionVisible(s.index) }, set: { model.setSessionVisible(s.index, $0) })) {
-              Text(s.title + (s.aligned ? "" : " (not aligned)"))
+              Text(s.title + (s.aligned ? "" : "（未对齐）"))
             }
           }
         }
@@ -763,8 +763,8 @@ struct PreviewScreen: View {
   @ViewBuilder private var legend: some View {
     switch model.style {
     case .coverage:
-      LegendView(items: [(Color(red: 1, green: 0.23, blue: 0.19), "Needs photos"), (Color(red: 1, green: 0.8, blue: 0), "Almost"),
-                         (Color(red: 0.2, green: 0.78, blue: 0.35), "完成"), (Color(white: 0.6), "Outside room")])
+      LegendView(items: [(Color(red: 1, green: 0.23, blue: 0.19), "需要照片"), (Color(red: 1, green: 0.8, blue: 0), "接近完成"),
+                         (Color(red: 0.2, green: 0.78, blue: 0.35), "完成"), (Color(white: 0.6), "房间之外")])
     case .sessions:
       LegendView(items: model.sessions.filter { model.isSessionVisible($0.index) }.map { (Color(uiColor: $0.hue), $0.title) })
     default:

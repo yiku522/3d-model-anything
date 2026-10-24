@@ -35,9 +35,9 @@ struct FieldworkRoomScreen: View {
               .id("\(active.session)/\(active.index)")
             let record = manifests[active.session]?.rooms.first { $0.index == active.index }
             HStack(alignment: .top, spacing: 28) {
-              metric(record?.photographedPercent.map { "\($0)%" } ?? "—", label: "photo detail")
+              metric(record?.photographedPercent.map { "\($0)%" } ?? "—", label: "拍照细节")
               Rectangle().fill(Fieldwork.rule).frame(width: 0.5, height: 42)
-              metric(record?.detailPhotos.map(String.init) ?? "—", label: "detail photos")
+              metric(record?.detailPhotos.map(String.init) ?? "—", label: "细节照片")
               Spacer(minLength: 0)
             }
             VStack(spacing: 10) {
@@ -65,7 +65,7 @@ struct FieldworkRoomScreen: View {
             FieldworkRule()
             NavigationLink {
               RoomConnection(house: house, source: room, onSave: reload)
-            } label: { actionRow("连接房间", subtitle: "Match a doorway with another scan", icon: "link") }
+            } label: { actionRow("连接房间", subtitle: "与另一次扫描匹配同一个门洞", icon: "link") }
             FieldworkRule()
             Text("拍照细节衡量的是已观测表面上有效拍照的覆盖程度，并非房间被扫描的百分比。")
               .font(.caption).foregroundStyle(Fieldwork.secondary)
@@ -209,7 +209,7 @@ private struct FieldworkRoomPreview: View {
       .frame(height: 280).clipped()
       .overlay(FieldworkCorners().stroke(Fieldwork.orange, lineWidth: 1.5).allowsHitTesting(false))
       HStack {
-        Text(coverage ? "Green surfaces have useful photos" : "Drag to rotate · pinch to zoom")
+        Text(coverage ? "绿色表面已拍到有用的照片" : "拖动旋转 · 双指缩放")
           .font(.caption).foregroundStyle(Fieldwork.secondary)
         Spacer()
         Button {
