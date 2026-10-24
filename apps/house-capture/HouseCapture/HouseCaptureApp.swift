@@ -46,16 +46,16 @@ struct HomeView: View {
       ScrollView {
         LazyVStack(alignment: .leading, spacing: 0) {
           VStack(alignment: .leading, spacing: 14) {
-            FieldworkEyebrow(text: "A record of your spaces")
-            Text("3D Model Anything").font(.largeTitle.weight(.bold)).tracking(-1)
-            Text("Room by room. Every detail.").font(.title3).foregroundStyle(Fieldwork.secondary)
+            FieldworkEyebrow(text: "记录你的空间")
+            Text("3D 实景建模").font(.largeTitle.weight(.bold)).tracking(-1)
+            Text("一间一间，记录每个细节。").font(.title3).foregroundStyle(Fieldwork.secondary)
           }.padding(.top, 20).padding(.bottom, 36)
           FieldworkRule()
           if houses.isEmpty {
             VStack(alignment: .leading, spacing: 18) {
               Image(systemName: "house.lodge").font(.system(size: 64, weight: .ultraLight)).foregroundStyle(Fieldwork.orange)
-              Text("Start with a space you know.").font(.title2.bold())
-              Text("Create a house, then scan your first room. Your scans and photos stay saved on this iPhone.")
+              Text("从你熟悉的空间开始。").font(.title2.bold())
+              Text("先创建一个房屋，然后扫描你的第一个房间。你的扫描和照片都会保存在这部 iPhone 上。")
                 .foregroundStyle(Fieldwork.secondary)
             }.padding(.vertical, 40)
           }
@@ -74,25 +74,25 @@ struct HomeView: View {
               }.padding(.vertical, 24).contentShape(Rectangle())
             }.buttonStyle(.plain)
             .contextMenu {
-              Button("Delete house", systemImage: "trash", role: .destructive) { deleting = house }
+              Button("删除房屋", systemImage: "trash", role: .destructive) { deleting = house }
             }
             FieldworkRule()
           }
           if !CaptureController.isSupported {
-            Text("Scanning requires an iPhone or iPad with LiDAR. Import an extracted room folder to view and share scans on this device.")
+            Text("扫描需要使用带 LiDAR 的 iPhone 或 iPad。导入已解包的房间文件夹，即可在此设备上查看和分享扫描。")
               .font(.footnote).foregroundStyle(Fieldwork.secondary).padding(.vertical, 24)
           }
         }.padding(.horizontal, 24).padding(.bottom, 24)
       }
       .disabled(working)
-      .overlay { if working { ProgressView("Preparing…").padding(24).background(Fieldwork.paper, in: RoundedRectangle(cornerRadius: 12)) } }
+      .overlay { if working { ProgressView("准备中…").padding(24).background(Fieldwork.paper, in: RoundedRectangle(cornerRadius: 12)) } }
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
           Button { importing = true } label: { Image(systemName: "square.and.arrow.down").frame(width: 44, height: 44) }
-            .accessibilityLabel("Import room folder").disabled(working)
+            .accessibilityLabel("导入房间文件夹").disabled(working)
         }
         ToolbarItem(placement: .topBarTrailing) {
-          NavigationLink { AppHelpScreen() } label: { Image(systemName: "questionmark.circle").frame(width: 44, height: 44) }.accessibilityLabel("Help and privacy")
+          NavigationLink { AppHelpScreen() } label: { Image(systemName: "questionmark.circle").frame(width: 44, height: 44) }.accessibilityLabel("帮助与隐私")
         }
       }
       .fileImporter(isPresented: $importing, allowedContentTypes: [.folder]) { result in
@@ -105,9 +105,9 @@ struct HomeView: View {
       .navigationTitle("").navigationBarTitleDisplayMode(.inline)
       .safeAreaInset(edge: .bottom) {
         Button {
-          newName = houses.isEmpty ? "Our house" : ""
+          newName = houses.isEmpty ? "我们的家" : ""
           naming = true
-        } label: { Label("New house", systemImage: "plus") }
+        } label: { Label("新建房屋", systemImage: "plus") }
           .buttonStyle(FieldworkButtonStyle()).disabled(!CaptureController.isSupported)
           .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 10).background(Fieldwork.paper)
       }
@@ -115,25 +115,25 @@ struct HomeView: View {
         HouseScreen(houseID: id, generation: generation, onCapture: startCapture, onGone: { path.removeAll() })
       }
       .onAppear(perform: reload)
-      .alert("Something went wrong", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
-        Button("OK") { error = nil }
+      .alert("出现了问题", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
+        Button("好") { error = nil }
         if AVCaptureDevice.authorizationStatus(for: .video) == .denied {
-          Button("Open Settings") {
+          Button("打开设置") {
             if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
           }
         }
       } message: {
         Text(error ?? "")
       }
-      .alert("New house", isPresented: $naming) {
-        TextField("Name", text: $newName)
-        Button("Create and scan", action: createHouse)
-        Button("Cancel", role: .cancel) {}
+      .alert("新建房屋", isPresented: $naming) {
+        TextField("名称", text: $newName)
+        Button("创建并扫描", action: createHouse)
+        Button("取消", role: .cancel) {}
       } message: {
-        Text("Then scan your first room. You can add more rooms later.")
+        Text("然后扫描你的第一个房间。之后你可以随时添加更多房间。")
       }
-      .confirmationDialog("Delete \(deleting?.name ?? "house")?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
-        Button("Delete house and all its scans", role: .destructive) {
+      .confirmationDialog("删除 \(deleting?.name ?? "房屋")？", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
+        Button("删除房屋及其所有扫描", role: .destructive) {
           if let h = deleting {
             do { try h.delete() } catch { self.error = error.localizedDescription }
           }
@@ -141,7 +141,7 @@ struct HomeView: View {
           reload()
         }
       } message: {
-        Text("This removes every session, photo and mesh of this house from the phone.")
+        Text("这将从手机上删除该房屋的所有会话、照片和网格。")
       }
       .fullScreenCover(item: $capture, onDismiss: captureClosed) { controller in
         CaptureScreen(controller: controller) { capture = nil }

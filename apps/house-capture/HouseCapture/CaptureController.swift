@@ -66,7 +66,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
     var check: ZoneReference.Check?
     var timedOut = false
     /// "Loading earlier scan…", "earlier scan: 85k triangles", …
-    var reference = "Loading your earlier scan…"
+    var reference = "正在加载你早前的扫描…"
   }
 
   @Published private(set) var phase: Phase
@@ -133,7 +133,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
     }
     scan.onSessionEvent = { [weak self] event in
       guard let self, !self.closed else { return }
-      self.sessionInterrupted = event == "ARKit session interrupted"
+      self.sessionInterrupted = event == "ARKit 会话已中断"
       self.recovery.update(problem: .interrupted, now: CACurrentMediaTime())
       self.trackingIssue = self.recovery.issue
       self.candidate = nil
@@ -340,7 +340,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
       diagnostics.log("world map loaded: \(map.rawFeaturePoints.points.count) feature points, \(map.anchors.count) anchors", since: startedAt)
       runRelocalization(map)
     case .failure(let error):
-      reloc.stage = .failed("Couldn't read the saved map (\(error.localizedDescription)).")
+      reloc.stage = .failed("无法读取已保存的地图（\(error.localizedDescription)）。")
       diagnostics.log("world map load failed: \(error.localizedDescription)", since: startedAt)
     }
   }
@@ -357,7 +357,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
     scanView.setGhost(ref.ghost)
     applyGhostOpacity()
     reloc.reference = ref.isEmpty
-      ? "No saved mesh in \(zoneName) to check against."
+      ? "没有可用于比对的已保存网格（区域 \(zoneName)）。"
       : "Earlier scan: \(ref.files.count) mesh\(ref.files.count == 1 ? "" : "es"), \((ref.ghost?.triangleCount ?? 0) / 1000)k triangles"
   }
 
@@ -597,7 +597,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
     if monitorBad >= 3, !warnedDrift {
       warnedDrift = true
       diagnostics.log("alignment drift: known \(check.known) matched \(check.matched)", since: startedAt)
-      lastWarning = "The earlier scan doesn't line up any more (tracking may have reset). Finish this session and use Continue again so new rooms land in the right place."
+      lastWarning = "早前的扫描已无法对齐（追踪可能已重置）。请结束本次会话并再次使用“继续”，让新房间落到正确位置。"
     }
   }
 
@@ -621,7 +621,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
     do {
       house = try HouseProject.modify(house.id) { $0.setAlignment(session: plan.sessionID, alignment) }
     } catch {
-      lastWarning = "Couldn't update house.json: \(error.localizedDescription)"
+      lastWarning = "无法更新 house.json：\(error.localizedDescription)"
     }
   }
 
@@ -796,7 +796,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
       engine.setRoom(room)
       scanView.showRoom(room)
     } catch {
-      lastWarning = "RoomPlan couldn't build the layout (\(error.localizedDescription)). The mesh and photos are still saved."
+      lastWarning = "RoomPlan 无法构建布局（\(error.localizedDescription)）。网格和照片仍已保存。"
       record.file = "" // no layout for this room; capturedRooms only holds rooms RoomPlan built
       record.usdz = ""
     }
@@ -827,7 +827,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
       }
     } catch {
       recordingSaveFailed = true
-      lastWarning = "Couldn't add \(record.name) to house.json: \(error.localizedDescription)"
+      lastWarning = "无法将 \(record.name) 添加到 house.json：\(error.localizedDescription)"
     }
     diagnostics.log("room \(index) '\(record.name)' saved: \(record.walls) walls, mesh \(record.mesh?.vertices ?? 0) v", since: startedAt)
     do { try writeManifest() }
@@ -863,7 +863,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
     do {
       house = try HouseProject.modify(house.id) { $0.removeRoomScan(session: plan.sessionID, index: last.index) }
     } catch {
-      lastWarning = "Couldn't update house.json: \(error.localizedDescription)"
+      lastWarning = "无法更新 house.json：\(error.localizedDescription)"
     }
     try? bundle.savePhotos(photos)
     try? depthRecorder.save()
@@ -906,7 +906,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
     }
 
     // RoomPlan merges last: it's slow, and everything above is already safe on disk
-    finishingStep = "Merging rooms…"
+    finishingStep = "正在合并房间…"
     var structureFile: String?
     var structureError: String?
     if !capturedRooms.isEmpty {
@@ -1012,7 +1012,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
         do {
           house = try HouseProject.modify(house.id) { $0.setWorldMap(zone: plan.zoneID, path: zonePath) }
         } catch {
-          lastWarning = "Couldn't update house.json: \(error.localizedDescription)"
+          lastWarning = "无法更新 house.json：\(error.localizedDescription)"
         }
       }
       if mb > 40, !warnedBigMap {
@@ -1021,7 +1021,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
       }
     case .failure(let e):
       diagnostics.log("world map write failed: \(e.localizedDescription)", since: startedAt)
-      lastWarning = "Couldn't save the world map: \(e.localizedDescription)"
+      lastWarning = "无法保存世界地图：\(e.localizedDescription)"
     }
   }
 
@@ -1188,7 +1188,7 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
     case .notAvailable: "Camera starting…"
     case .limited(.initializing): "Getting started: move the phone slowly"
     case .limited(.relocalizing): "Looking for a place it knows…"
-    case .limited(.excessiveMotion): "Slow down"
+    case .limited(.excessiveMotion): "慢一点"
     case .limited(.insufficientFeatures): "Not enough detail here: aim at furniture, doorways, corners"
     case .limited: "Tracking limited"
     }
@@ -1598,17 +1598,17 @@ final class CaptureController: NSObject, ObservableObject, RoomCaptureSessionDel
 
   nonisolated private static func describe(_ i: RoomCaptureSession.Instruction) -> String? {
     switch i {
-    case .moveCloseToWall: "Move closer to the wall"
-    case .moveAwayFromWall: "Move back from the wall"
-    case .slowDown: "Slow down"
-    case .turnOnLight: "Turn on more lights"
-    case .lowTexture: "Aim at something with more detail"
+    case .moveCloseToWall: "靠墙更近一些"
+    case .moveAwayFromWall: "离墙远一些"
+    case .slowDown: "慢一点"
+    case .turnOnLight: "打开更多灯光"
+    case .lowTexture: "对准更有细节的物体"
     case .normal: nil
     @unknown default: nil
     }
   }
 
-  private static let names = ["Living room", "Kitchen", "Dining room", "Hallway", "Bedroom", "Bathroom", "Office"]
+  private static let names = ["客厅", "厨房", "餐厅", "走廊", "卧室", "浴室", "书房"]
   static func suggestedName(for index: Int) -> String {
     index < names.count ? names[index] : "Room \(index + 1)"
   }

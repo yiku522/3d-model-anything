@@ -61,7 +61,7 @@ struct FieldworkThumbnail: View {
       else if loaded {
         VStack(spacing: 8) {
           Image(systemName: "cube.transparent").font(.largeTitle.weight(.ultraLight))
-          Text("No preview yet").font(.caption)
+          Text("暂无可预览内容").font(.caption)
         }.foregroundStyle(Fieldwork.secondary)
       } else { ProgressView().tint(Fieldwork.orange) }
     }

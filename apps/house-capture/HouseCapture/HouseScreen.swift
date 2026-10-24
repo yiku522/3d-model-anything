@@ -41,13 +41,13 @@ struct HouseScreen: View {
     .foregroundStyle(Fieldwork.ink)
     .navigationTitle("")
     .toolbar {
-      ToolbarItem(placement: .principal) { FieldworkEyebrow(text: "3D Model Anything") }
+      ToolbarItem(placement: .principal) { FieldworkEyebrow(text: "3D 实景建模") }
       ToolbarItem(placement: .topBarTrailing) {
         if let house {
           Menu {
-            Button("Share whole house", systemImage: "square.and.arrow.up") { share(house.url, name: house.name) }
-            NavigationLink("Preview house in 3D") { HousePreviews.house(house) }
-          } label: { Image(systemName: "ellipsis").frame(width: 44, height: 44) }.accessibilityLabel("House options")
+            Button("分享整个房屋", systemImage: "square.and.arrow.up") { share(house.url, name: house.name) }
+            NavigationLink("在 3D 中预览房屋") { HousePreviews.house(house) }
+          } label: { Image(systemName: "ellipsis").frame(width: 44, height: 44) }.accessibilityLabel("房屋选项")
         }
       }
     }
@@ -61,13 +61,13 @@ struct HouseScreen: View {
           .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
       }
     }
-    .alert("Something went wrong", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
-      Button("OK") { error = nil }
+    .alert("出现了问题", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
+      Button("好") { error = nil }
     } message: {
       Text(error ?? "")
     }
-    .confirmationDialog("Move room to Recently Deleted?", isPresented: Binding(get: { deletingRoom != nil }, set: { if !$0 { deletingRoom = nil } }), titleVisibility: .visible) {
-      Button("Delete room", role: .destructive) {
+    .confirmationDialog("将房间移到“最近删除”？", isPresented: Binding(get: { deletingRoom != nil }, set: { if !$0 { deletingRoom = nil } }), titleVisibility: .visible) {
+      Button("删除房间", role: .destructive) {
         if let room = deletingRoom {
           do { try HouseProject.moveRoomToTrash(houseID: houseID, roomID: room.id) }
           catch { self.error = error.localizedDescription }
@@ -76,27 +76,27 @@ struct HouseScreen: View {
         deletingRoom = nil
       }
     } message: {
-      Text("You can restore this room and its scans from Recently Deleted. Nothing is erased yet.")
+      Text("你可以从“最近删除”恢复此房间及其扫描。目前还没有任何内容被彻底删除。")
     }
-    .confirmationDialog("Delete this session?", isPresented: Binding(get: { deletingSession != nil }, set: { if !$0 { deletingSession = nil } }), titleVisibility: .visible) {
-      Button("Delete session", role: .destructive) {
+    .confirmationDialog("删除本次会话？", isPresented: Binding(get: { deletingSession != nil }, set: { if !$0 { deletingSession = nil } }), titleVisibility: .visible) {
+      Button("删除本次会话", role: .destructive) {
         if let s = deletingSession { delete(s) }
         deletingSession = nil
       }
     } message: {
-      Text("Its rooms go back to their previous scans (rooms with no other scan disappear). Photos, meshes and depth of this session are deleted.")
+      Text("其房间会回退到上一次扫描（没有其他扫描的房间会消失）。本次会话的照片、网格和深度数据将被删除。")
     }
-    .alert("Rename room", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-      TextField("Room name", text: $newRoomName)
-      Button("Save") { if let room = renaming { perform { try HouseProject.renameRoom(houseID: houseID, roomID: room.id, name: newRoomName) } }; renaming = nil }
-      Button("Cancel", role: .cancel) { renaming = nil }
+    .alert("重命名房间", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
+      TextField("房间名称", text: $newRoomName)
+      Button("保存") { if let room = renaming { perform { try HouseProject.renameRoom(houseID: houseID, roomID: room.id, name: newRoomName) } }; renaming = nil }
+      Button("取消", role: .cancel) { renaming = nil }
     }
-    .confirmationDialog("Permanently delete this room?", isPresented: Binding(get: { permanentRoomID != nil }, set: { if !$0 { permanentRoomID = nil } }), titleVisibility: .visible) {
-      Button("Delete permanently", role: .destructive) {
+    .confirmationDialog("永久删除此房间？", isPresented: Binding(get: { permanentRoomID != nil }, set: { if !$0 { permanentRoomID = nil } }), titleVisibility: .visible) {
+      Button("永久删除", role: .destructive) {
         if let id = permanentRoomID { perform { try HouseProject.permanentlyDeleteRoom(houseID: houseID, roomID: id) } }
         permanentRoomID = nil
       }
-    } message: { Text("This cannot be undone. Shared recordings needed by other rooms are kept.") }
+    } message: { Text("此操作无法撤销。其他房间所需的共享录制内容会被保留。") }
     .sheet(item: $sharing) { url in ShareSheet(items: [url]) }
   }
 
@@ -107,15 +107,15 @@ struct HouseScreen: View {
       LazyVStack(alignment: .leading, spacing: 0) {
         VStack(alignment: .leading, spacing: 8) {
           Text(house.name).font(.largeTitle.weight(.bold)).tracking(-1)
-          Text("\(house.rooms.count) room\(house.rooms.count == 1 ? "" : "s")")
+          Text("\(house.rooms.count) 个房间")
             .font(.title3).foregroundStyle(Fieldwork.secondary)
         }.padding(.top, 12).padding(.bottom, 28)
         FieldworkRule()
         if house.rooms.isEmpty {
           VStack(alignment: .leading, spacing: 14) {
             Image(systemName: "viewfinder").font(.system(size: 42, weight: .ultraLight)).foregroundStyle(Fieldwork.orange)
-            Text("Every room starts here.").font(.title2.bold())
-            Text("Scan a room to save its shape, details and photos. Add the rest of your house whenever you're ready.")
+            Text("每个房间都从这里开始。").font(.title2.bold())
+            Text("扫描一个房间，保存它的形状、细节和照片。准备好后随时添加房屋的其他部分。")
               .foregroundStyle(Fieldwork.secondary)
           }.padding(.vertical, 40)
         }
@@ -126,8 +126,8 @@ struct HouseScreen: View {
             roomRow(house, room, number: number + 1)
           }.buttonStyle(.plain)
           .contextMenu {
-            Button("Rename", systemImage: "pencil") { newRoomName = room.name; renaming = room }
-            Button("Delete room", systemImage: "trash", role: .destructive) { deletingRoom = room }
+            Button("重命名", systemImage: "pencil") { newRoomName = room.name; renaming = room }
+            Button("删除房间", systemImage: "trash", role: .destructive) { deletingRoom = room }
           }
           FieldworkRule()
         }
@@ -140,7 +140,7 @@ struct HouseScreen: View {
               }
             }.padding(.top, 18)
           } label: {
-            Label("Sessions · \(house.sessions.count)", systemImage: "square.stack.3d.up")
+            Label("会话 · \(house.sessions.count)", systemImage: "square.stack.3d.up")
               .font(.subheadline).foregroundStyle(Fieldwork.secondary)
           }.padding(.vertical, 24)
         }
@@ -157,22 +157,22 @@ struct HouseScreen: View {
               }.padding(.vertical, 12)
             }
           } label: {
-            Label("Recently Deleted", systemImage: "trash").font(.subheadline).foregroundStyle(Fieldwork.secondary)
+            Label("最近删除", systemImage: "trash").font(.subheadline).foregroundStyle(Fieldwork.secondary)
           }.padding(.vertical, 24)
         }
       }.padding(.horizontal, 24).padding(.bottom, 20)
     }
     .safeAreaInset(edge: .bottom) {
       Button { onCapture(house.id, nil, nil, nil) } label: {
-        Label("Scan a room", systemImage: "viewfinder")
+        Label("扫描一个房间", systemImage: "viewfinder")
       }.buttonStyle(FieldworkButtonStyle()).disabled(!CaptureController.isSupported)
         .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 10).background(Fieldwork.paper)
     }
   }
 
   @ViewBuilder private func trashActions(_ id: String) -> some View {
-    Button("Restore") { perform { try HouseProject.restoreRoom(houseID: houseID, roomID: id) } }.buttonStyle(.bordered)
-    Button("Delete permanently", role: .destructive) { permanentRoomID = id }.buttonStyle(.bordered)
+    Button("恢复") { perform { try HouseProject.restoreRoom(houseID: houseID, roomID: id) } }.buttonStyle(.bordered)
+    Button("永久删除", role: .destructive) { permanentRoomID = id }.buttonStyle(.bordered)
   }
 
   private func roomRow(_ house: HouseProject, _ room: HouseProject.Room, number: Int) -> some View {
@@ -201,7 +201,7 @@ struct HouseScreen: View {
         Text(active.capturedAt.formatted(.dateTime.month(.abbreviated).day().year()))
           .font(.system(.caption, design: .monospaced)).foregroundStyle(Fieldwork.secondary)
         if let detail = record(active)?.photographedPercent {
-          Text("\(detail)% photo detail").font(.caption).foregroundStyle(Fieldwork.secondary)
+          Text("\(detail)% 拍照细节").font(.caption).foregroundStyle(Fieldwork.secondary)
         }
       }
     }
@@ -215,7 +215,7 @@ struct HouseScreen: View {
         AlignmentBadge(alignment: s.alignment)
       }
       let names = s.rooms.compactMap { i in manifests[s.id]?.rooms.first { $0.index == i }?.name ?? "Room \(i + 1)" }
-      Text("\(names.isEmpty ? "no rooms" : names.joined(separator: ", "))\(s.endedAt == nil ? " · incomplete" : "")")
+      Text("\(names.isEmpty ? "暂无房间" : names.joined(separator: "、"))\(s.endedAt == nil ? " · 未完成" : "")")
         .font(.footnote)
         .foregroundStyle(s.endedAt == nil ? .orange : .secondary)
       HStack {
@@ -223,7 +223,7 @@ struct HouseScreen: View {
           NavigationLink {
             HousePreviews.session(house, s)
           } label: {
-            Label("Preview", systemImage: "cube")
+            Label("预览", systemImage: "cube")
           }
           .buttonStyle(.bordered)
           .controlSize(.small)
@@ -231,14 +231,14 @@ struct HouseScreen: View {
         Button {
           share(house.bundle(for: s).url, name: "\(house.name) \(s.id)")
         } label: {
-          Label("Share", systemImage: "square.and.arrow.up")
+          Label("分享", systemImage: "square.and.arrow.up")
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
         Spacer()
         Button(role: .destructive) { deletingSession = s } label: {
           Image(systemName: "trash").frame(width: 44, height: 44)
-        }.accessibilityLabel("Delete session")
+        }.accessibilityLabel("删除本次会话")
       }
     }
     .padding(.vertical, 2)

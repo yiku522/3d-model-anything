@@ -73,7 +73,7 @@ struct HelpDocumentView: View {
           }
         }.padding(24).frame(maxWidth: 680, alignment: .leading).frame(maxWidth: .infinity)
       } else {
-        ContentUnavailableView("Help is unavailable", systemImage: "doc.text", description: Text("Please reinstall the app update to restore its bundled help."))
+        ContentUnavailableView("帮助暂不可用", systemImage: "doc.text", description: Text("请重新安装应用更新，以恢复内置的帮助内容。"))
       }
     }.background(Fieldwork.paper).foregroundStyle(Fieldwork.ink)
   }
@@ -87,24 +87,24 @@ struct AppHelpScreen: View {
   }
   var body: some View {
     List {
-      Section("3D Model Anything") {
-        NavigationLink("Scanning, importing & sharing") { HelpDocumentView(resource: "Support") }
-        NavigationLink("Privacy policy") { HelpDocumentView(resource: "PrivacyPolicy") }
-        if let url = publicURL("HouseCapturePrivacyURL") { Link("Privacy policy online", destination: url) }
-        if let url = publicURL("HouseCaptureSupportURL") { Link("Contact support", destination: url) }
+      Section("3D 实景建模") {
+        NavigationLink("扫描、导入与分享") { HelpDocumentView(resource: "Support") }
+        NavigationLink("隐私政策") { HelpDocumentView(resource: "PrivacyPolicy") }
+        if let url = publicURL("HouseCapturePrivacyURL") { Link("在线隐私政策", destination: url) }
+        if let url = publicURL("HouseCaptureSupportURL") { Link("联系支持", destination: url) }
       }
-      Section("Permissions") {
-        Text("The camera is used only while capturing rooms. Importing and reviewing saved scans does not require camera access.")
-        Button("Open app settings") {
+      Section("权限") {
+        Text("摄像头仅在扫描房间时使用。导入和查看已保存的扫描不需要摄像头权限。")
+        Button("打开应用设置") {
           if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
         }
       }
-      Section("About") {
-        Text("Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"))")
-        Text("Scans are approximate. Verify measurements before construction or other precision work.").font(.footnote)
+      Section("关于") {
+        Text("版本 \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0") (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"))")
+        Text("扫描结果仅为近似值。在进行施工或其他精密工作前，请务必核对测量结果。").font(.footnote)
       }
     }
     .scrollContentBackground(.hidden).background(Fieldwork.paper)
-    .navigationTitle("Help & privacy").navigationBarTitleDisplayMode(.inline)
+    .navigationTitle("帮助与隐私").navigationBarTitleDisplayMode(.inline)
   }
 }

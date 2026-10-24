@@ -48,7 +48,7 @@ enum PreviewDebug {
       return AnyView(HouseViewer(house: house))
     } catch {
       log("can't read \(url.path)/house.json: \(error)")
-      return AnyView(Text("Can't read house.json: \(error.localizedDescription)").padding())
+      return AnyView(Text("无法读取 house.json：\(error.localizedDescription)").padding())
     }
   }
 

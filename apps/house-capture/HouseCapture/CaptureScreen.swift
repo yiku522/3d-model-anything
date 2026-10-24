@@ -10,7 +10,7 @@ struct CaptureScreen: View {
   @State private var confirmClose = false
   @FocusState private var nameFocused: Bool
   @Environment(\.scenePhase) private var scenePhase
-  static let roomSuggestions = ["Living room", "Kitchen", "Dining room", "Office", "Bedroom", "Primary bedroom", "Bathroom", "Hallway", "Basement", "Playroom", "Laundry", "Garage"]
+  static let roomSuggestions = ["客厅", "厨房", "餐厅", "书房", "卧室", "Primary bedroom", "浴室", "走廊", "Basement", "Playroom", "Laundry", "Garage"]
 
   private var scanning: Bool { controller.phase == .scanning }
 
@@ -32,15 +32,15 @@ struct CaptureScreen: View {
         Spacer()
         if scanning, let issue = controller.trackingIssue {
           VStack(alignment: .leading, spacing: 6) {
-            Label("Recovering your position", systemImage: "viewfinder.trianglebadge.exclamationmark")
+            Label("正在恢复你的位置", systemImage: "viewfinder.trianglebadge.exclamationmark")
               .font(.headline)
             Text(issue.message).font(.subheadline)
-            Text("Recording is paused. Saved photos are safe; capture resumes when your position is stable.").font(.caption)
+            Text("录制已暂停。已保存的照片是安全的；当你的位置稳定后，扫描会自动继续。").font(.caption)
             if let url = controller.recoveryPhoto, let image = UIImage(contentsOfFile: url.path) {
               Image(uiImage: image).resizable().scaledToFit().frame(height: 100)
-              Text("Return to this view and pan slowly.").font(.caption)
+              Text("返回此界面并缓慢平移。").font(.caption)
             }
-            Button("Save what I have", action: controller.finishRoom)
+            Button("保存现有内容", action: controller.finishRoom)
           }
           .padding(12)
           .frame(maxWidth: 500, alignment: .leading)
@@ -60,21 +60,21 @@ struct CaptureScreen: View {
       .padding(.bottom, 8)
       .animation(.easeInOut(duration: 0.3), value: controller.notice)
     }
-    .confirmationDialog("Leave this session?", isPresented: $confirmClose, titleVisibility: .visible) {
+    .confirmationDialog("离开本次会话？", isPresented: $confirmClose, titleVisibility: .visible) {
       if !controller.rooms.isEmpty && controller.phase == .betweenRooms {
-        Button("Save \(controller.rooms.count) room\(controller.rooms.count == 1 ? "" : "s") and finish") {
+        Button("保存 \(controller.rooms.count) 个房间 并完成") {
           Task { await controller.finishSession() }
         }
       }
-      Button(controller.rooms.isEmpty ? "Discard session" : "Discard session and its \(controller.rooms.count) room\(controller.rooms.count == 1 ? "" : "s")", role: .destructive) {
+      Button(controller.rooms.isEmpty ? "丢弃会话" : "Discard session and its \(controller.rooms.count) room\(controller.rooms.count == 1 ? "" : "s")", role: .destructive) {
         controller.abandon()
         onClose()
       }
-      Button("Keep scanning", role: .cancel) {}
+      Button("继续扫描", role: .cancel) {}
     }
     .sheet(isPresented: $reviewing) {
       if let source = controller.reviewSource {
-        NavigationStack { ScanReview(source: source).toolbar { Button("Done") { reviewing = false } } }
+        NavigationStack { ScanReview(source: source).toolbar { Button("完成") { reviewing = false } } }
       }
     }
     .onChange(of: controller.phase) { old, next in
@@ -106,7 +106,7 @@ struct CaptureScreen: View {
           if scanning {
             VStack(spacing: 3) {
               CoverageRing(percent: controller.stats.percent).frame(width: 44, height: 44)
-              Text("Photo detail").font(.system(size: 9, weight: .semibold))
+              Text("拍照细节").font(.system(size: 9, weight: .semibold))
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Photo detail, \(controller.stats.percent) percent of observed surfaces")
@@ -133,7 +133,7 @@ struct CaptureScreen: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
         if controller.hasGhost, controller.alignment.method == "relocalized", controller.phase == .betweenRooms || scanning {
           Toggle(isOn: $controller.ghostVisible) {
-            Label("Earlier scan", systemImage: controller.ghostVisible ? "eye" : "eye.slash")
+            Label("早前扫描", systemImage: controller.ghostVisible ? "eye" : "eye.slash")
               .font(.caption.weight(.semibold))
           }
           .toggleStyle(.button)
@@ -171,11 +171,11 @@ struct CaptureScreen: View {
     case .betweenRooms:
       if controller.sessionNeedsRestart {
         panel {
-          Label("Scan ended", systemImage: "exclamationmark.triangle.fill").font(.headline)
-          Text("The phone lost its position. The available room data has been saved. Finish this session, then start a new capture from the house screen.")
+          Label("扫描已结束", systemImage: "exclamationmark.triangle.fill").font(.headline)
+          Text("手机丢失了位置信息。可用的房间数据已保存。请结束本次会话，然后从房屋主界面开始一次新的扫描。")
             .font(.subheadline)
           roomList
-          Button("Finish and keep saved rooms") { Task { await controller.finishSession() } }
+          Button("完成并保留已保存的房间") { Task { await controller.finishSession() } }
             .buttonStyle(.borderedProminent)
         }
       } else { betweenRooms }
@@ -189,11 +189,11 @@ struct CaptureScreen: View {
       done
     case .failed(let message):
       panel {
-        Text("Couldn't save the scan").font(.headline)
+        Text("无法保存扫描").font(.headline)
         Text(message).font(.footnote)
-        Text("Keep this screen open while freeing storage, then retry. Files already written are kept.").font(.caption)
-        Button("Retry saving") { Task { await controller.finishSession() } }.buttonStyle(.borderedProminent)
-        Button("Close", action: onClose).buttonStyle(.bordered)
+        Text("清理存储空间时请保持此界面打开，然后重试。已经写入的文件会被保留。").font(.caption)
+        Button("重试保存") { Task { await controller.finishSession() } }.buttonStyle(.borderedProminent)
+        Button("关闭", action: onClose).buttonStyle(.bordered)
       }
     }
   }
@@ -205,7 +205,7 @@ struct CaptureScreen: View {
           Text("You're lined up with \(controller.zoneName). The faint green is what you scanned before\(controller.priorPhotoCount > 0 ? "; surfaces its \(controller.priorPhotoCount) photos already cover start out green" : ""). Scan a new room, or rescan one to replace it.")
             .font(.subheadline)
         } else {
-          Text("Scan each room once: as you move, a triangle mesh appears. **Green** means good photo coverage, including aligned earlier scans. **Red** needs more photos. Areas without triangles still need scanning. The white outlines are the walls, doors and windows being measured. **Photo detail** measures photography on surfaces already seen by LiDAR; it is not the percentage of the room scanned. Save and review for missing areas.")
+          Text("每个房间扫描一次：移动时会出现三角网格。**绿色**表示照片覆盖良好（包括已对齐的早前扫描）。**红色**需要更多照片。没有三角网格的区域仍需要扫描。白色轮廓是正在测量的墙体、门和窗。**拍照细节**衡量 LiDAR 已观测表面上的拍照情况，并非房间被扫描的百分比。保存后检查遗漏区域。")
             .font(.subheadline)
         }
       } else {
@@ -213,21 +213,21 @@ struct CaptureScreen: View {
           .frame(height: 150)
           .frame(maxWidth: .infinity)
         if let last = controller.rooms.last {
-          Text("\(last.name): \(last.photographedPercent.map { "\($0)% photo detail" } ?? "not measured") · \(last.detailPhotos ?? 0) photos\(last.mesh == nil ? " · no mesh" : "")")
+          Text("\(last.name): \(last.photographedPercent.map { "\($0)% 拍照细节" } ?? "未测量") · \(last.detailPhotos ?? 0) 张照片\(last.mesh == nil ? " · 无网格" : "")")
             .font(.footnote)
         }
-        Button("Review saved room in 3D") { reviewing = true }.buttonStyle(.borderedProminent)
-        Text("Inspect the textured scan before leaving. Use coverage colours in the preview to check gaps.").font(.caption)
+        Button("在 3D 中查看已保存的房间") { reviewing = true }.buttonStyle(.borderedProminent)
+        Text("离开前先查看带贴图的扫描。在预览中用覆盖色检查遗漏区域。").font(.caption)
         roomList
-        Text("Walk into the next room, then start it. Stay in this session so the rooms line up.")
+        Text("走进下一个房间，然后开始扫描。保持在同一会话中，这样房间才能对齐。")
           .font(.footnote)
           .foregroundStyle(.secondary)
       }
       if controller.requiresFreshScan {
-        Text("This scan is saved. Finish this session, then tap Scan a room to continue with a fresh capture.").font(.headline)
+        Text("本次扫描已保存。结束本次会话，然后点击“扫描一个房间”以开始一次新的扫描。").font(.headline)
       }
-      Text("Which room are you in?").font(.subheadline.weight(.semibold))
-      TextField("Room name", text: $controller.roomName)
+      Text("你现在在哪个房间？").font(.subheadline.weight(.semibold))
+      TextField("房间名称", text: $controller.roomName)
         .textFieldStyle(.roundedBorder)
         .submitLabel(.go)
         .focused($nameFocused)
@@ -255,18 +255,18 @@ struct CaptureScreen: View {
         }
       }
       if controller.selectedRoomID != nil {
-        Text("Rescan: this becomes \(controller.roomName)'s active scan (the old one stays in its history).")
+        Text("重新扫描：这将成为 \(controller.roomName) 的当前扫描（旧扫描会保留在历史记录中）。")
           .font(.caption2)
           .foregroundStyle(.secondary)
       }
-      Toggle("High-resolution automatic photos", isOn: $controller.highResolutionPhotos)
+      Toggle("高分辨率自动拍照", isOn: $controller.highResolutionPhotos)
         .font(.subheadline)
-      Text("Regular photos use camera frames for a lighter scan. High-resolution photos add processing and are limited to one request every 3 seconds while the phone is cool. The shutter always saves a regular photo.")
+      Text("普通照片使用相机帧，扫描更轻量。高分辨率照片会增加处理负担，且在手机温度较低时每 3 秒最多请求一张。快门始终会保存一张普通照片。")
         .font(.caption).foregroundStyle(.secondary)
       Button {
         controller.startRoom()
       } label: {
-        Label(controller.canStartRoom ? "Scan \(controller.roomName)" : "Name the room to start", systemImage: "viewfinder")
+        Label(controller.canStartRoom ? "Scan \(controller.roomName)" : "请先命名房间以开始", systemImage: "viewfinder")
           .frame(maxWidth: .infinity)
       }
       .buttonStyle(.borderedProminent)
@@ -274,9 +274,9 @@ struct CaptureScreen: View {
       .disabled(!controller.canStartRoom)
       if !controller.rooms.isEmpty {
         HStack {
-          Button("Redo last room", role: .destructive, action: controller.discardLastRoom)
+          Button("重做上一个房间", role: .destructive, action: controller.discardLastRoom)
           Spacer()
-          Button("Finish session") { Task { await controller.finishSession() } }
+          Button("结束会话") { Task { await controller.finishSession() } }
             .buttonStyle(.bordered)
         }
       }
@@ -289,18 +289,18 @@ struct CaptureScreen: View {
 
   private var pausedPanel: some View {
     panel {
-      Label("Paused", systemImage: "pause.circle.fill").font(.headline)
-      Text("No photos, depth or coverage while paused. Tracking keeps running: keep the camera pointed at the room (not the floor or your pocket) so it doesn't lose its place.")
+      Label("已暂停", systemImage: "pause.circle.fill").font(.headline)
+      Text("暂停期间没有照片、深度或覆盖数据。追踪仍在运行：请让摄像头始终对准房间（不要对着地面或口袋），以免丢失位置。")
         .font(.footnote)
         .foregroundStyle(.secondary)
       Button {
         controller.resume()
       } label: {
-        Label("Resume \(controller.roomName)", systemImage: "play.fill").frame(maxWidth: .infinity)
+        Label("继续 \(controller.roomName)", systemImage: "play.fill").frame(maxWidth: .infinity)
       }
       .buttonStyle(.borderedProminent)
       .controlSize(.large)
-      Button("Finish room and save what is available", action: controller.finishRoom)
+      Button("完成房间并保存已获取的内容", action: controller.finishRoom)
         .buttonStyle(.bordered)
     }
   }
@@ -313,9 +313,9 @@ struct CaptureScreen: View {
           Text(room.name)
           Spacer()
           if let pc = room.photographedPercent {
-            Text("\(pc)% photo detail").font(.caption.monospacedDigit().weight(.semibold)).foregroundStyle(pc >= 85 ? .green : .orange)
+            Text("\(pc)% 拍照细节").font(.caption.monospacedDigit().weight(.semibold)).foregroundStyle(pc >= 85 ? .green : .orange)
           }
-          Text("\(room.walls)w \(room.doors + room.openings)d \(room.windows)win \(room.objects)obj")
+          Text("\(room.walls)墙 \(room.doors + room.openings)门 \(room.windows)窗 \(room.objects)物")
             .font(.caption.monospacedDigit())
             .foregroundStyle(.secondary)
         }
@@ -330,7 +330,7 @@ struct CaptureScreen: View {
         if controller.coveragePlateau && !controller.quality.ready {
           tip("Photo detail isn't improving much. You can save and review what you have; you don't need to keep circling.")
         }
-        if controller.captureBudget.constrained { Text("Reducing background capture to keep scanning responsive.").font(.caption).foregroundStyle(.white) }
+        if controller.captureBudget.constrained { Text("正在降低后台采集频率，以保持扫描流畅。").font(.caption).foregroundStyle(.white) }
       }
       HStack(spacing: 14) {
         Legend()
@@ -358,7 +358,7 @@ struct CaptureScreen: View {
     }
     .disabled(!controller.canTakePhoto)
     .opacity(controller.canTakePhoto ? 1 : 0.4)
-    .accessibilityLabel("Take reference photo")
+    .accessibilityLabel("拍摄参考照片")
   }
 
   private func tip(_ text: String) -> some View {
@@ -371,16 +371,16 @@ struct CaptureScreen: View {
 
   private var done: some View {
     panel {
-      Label("Saved", systemImage: "checkmark.seal.fill").font(.headline).foregroundStyle(.green)
+      Label("已保存", systemImage: "checkmark.seal.fill").font(.headline).foregroundStyle(.green)
       roomList
       HStack(spacing: 8) {
         AlignmentBadge(alignment: controller.alignment)
-        Text(controller.mapSummary ?? "Map not saved").font(.caption).foregroundStyle(.secondary)
+        Text(controller.mapSummary ?? "地图未保存").font(.caption).foregroundStyle(.secondary)
       }
-      Text("Come back any time and tap **Scan a room**, or open a saved room and choose **Continue scanning from this room**. Share from the house screen (AirDrop the .zip to your Mac).")
+      Text("随时回来点击**扫描一个房间**，或打开已保存的房间并选择**从该房间继续扫描**。在房屋主界面分享（通过 AirDrop 把 .zip 发给你的 Mac）。")
         .font(.footnote)
         .foregroundStyle(.secondary)
-      Button("Close", action: onClose).buttonStyle(.borderedProminent)
+      Button("关闭", action: onClose).buttonStyle(.borderedProminent)
     }
   }
 
@@ -413,28 +413,28 @@ private struct RelocalizationPanel: View {
       HStack(alignment: .firstTextBaseline) {
         Text(title).font(.headline)
         Spacer()
-        if r.seconds > 0 { Text("\(r.seconds) s").font(.caption.monospacedDigit()).foregroundStyle(.secondary) }
+        if r.seconds > 0 { Text("\(r.seconds) 秒").font(.caption.monospacedDigit()).foregroundStyle(.secondary) }
       }
       Text(message).font(.subheadline)
       if r.stage == .checking {
         ProgressView(value: Double(r.progress))
           .tint(.green)
         if let c = r.check, c.known > 0 {
-          Text("\(Int((c.wallKnown > 0 ? c.wallFraction : c.inlierFraction) * 100))% of the walls you see match\(c.median.map { String(format: " · off by %.1f cm", $0 * 100) } ?? "")")
+          Text("你看到的墙体中有 \(Int((c.wallKnown > 0 ? c.wallFraction : c.inlierFraction) * 100))% 吻合\(c.median.map { String(format: " · 偏差 %.1f 厘米", $0 * 100) } ?? "")")
             .font(.caption.monospacedDigit())
             .foregroundStyle(.secondary)
           if c.needsCorner {
-            Text("Now pan across a corner, a door frame or some furniture: one flat wall can't show whether it's slid sideways.")
+            Text("现在横向平移扫过墙角、门框或家具：单独一面平墙无法判断它是否发生了侧向偏移。")
               .font(.caption.weight(.semibold))
           } else if c.wallKnown < 100 {
-            Text("Aim at walls and furniture you scanned before (not just the floor).")
+            Text("对准你之前扫描过的墙面和家具（不只是地面）。")
               .font(.caption.weight(.semibold))
           }
         }
       }
       Text(r.tracking + " · " + r.reference).font(.caption).foregroundStyle(.secondary)
       if !controller.landmarks.isEmpty, r.stage == .searching || r.stage == .mismatch {
-        Text("Spots you scanned before:").font(.caption.weight(.semibold))
+        Text("你之前扫描过的位置：").font(.caption.weight(.semibold))
         ScrollView(.horizontal, showsIndicators: false) {
           HStack(spacing: 6) {
             ForEach(controller.landmarks, id: \.self) { LandmarkThumb(url: $0) }
@@ -445,20 +445,20 @@ private struct RelocalizationPanel: View {
         tips
       }
       if r.timedOut, r.stage != .mismatch {
-        Text("Still can't find where you are.").font(.subheadline.weight(.semibold))
+        Text("仍然无法确定你的位置。").font(.subheadline.weight(.semibold))
         HStack {
-          Button("Keep trying", action: controller.keepTrying).buttonStyle(.bordered)
+          Button("继续尝试", action: controller.keepTrying).buttonStyle(.bordered)
           Spacer()
-          Button("Start a fresh scan", action: controller.startUnaligned).buttonStyle(.borderedProminent)
+          Button("开始一次新的扫描", action: controller.startUnaligned).buttonStyle(.borderedProminent)
         }
       } else {
         HStack {
           if r.stage == .mismatch {
-            Button("Try again", action: controller.retryRelocalization).buttonStyle(.borderedProminent)
+            Button("重试", action: controller.retryRelocalization).buttonStyle(.borderedProminent)
           }
           Spacer()
           if r.seconds >= 20 || r.stage == .mismatch || isFailed {
-            Button("Start a fresh scan", action: controller.startUnaligned).buttonStyle(.bordered)
+            Button("开始一次新的扫描", action: controller.startUnaligned).buttonStyle(.bordered)
           }
         }
       }
@@ -476,12 +476,12 @@ private struct RelocalizationPanel: View {
 
   private var title: String {
     switch r.stage {
-    case .loadingMap: "Loading \(controller.zoneName)…"
-    case .searching: "Continue in \(controller.zoneName)"
-    case .checking: "Found it: checking the fit"
-    case .mismatch: "This doesn't line up"
-    case .done: "Lined up"
-    case .failed: "Can't continue from the saved map"
+    case .loadingMap: "正在加载 \(controller.zoneName)…"
+    case .searching: "在 \(controller.zoneName) 中继续"
+    case .checking: "已找到：正在检查贴合度"
+    case .mismatch: "无法对齐"
+    case .done: "已对齐"
+    case .failed: "无法从已保存的地图继续"
     }
   }
 
@@ -498,10 +498,10 @@ private struct RelocalizationPanel: View {
 
   private var tips: some View {
     VStack(alignment: .leading, spacing: 3) {
-      Text("• Turn on the same lights as last time.")
-      Text("• Stand where you scanned before, like a doorway or a corner with furniture, 1–2 m back, and pan slowly.")
-      Text("• Bare walls and floors don't work; aim at shelves, pictures, door frames.")
-      Text("• Things moved since last time? Aim at something that didn't.")
+      Text("• 打开与上次相同的灯光。")
+      Text("• 站在你之前扫描过的位置，比如门口或有家具的墙角，退后 1–2 米，缓慢平移。")
+      Text("• 光秃的墙面和地面不行；请对准架子、画作、门框。")
+      Text("• 上次之后东西移动了？请对准没有移动的物品。")
     }
     .font(.caption)
     .foregroundStyle(.secondary)

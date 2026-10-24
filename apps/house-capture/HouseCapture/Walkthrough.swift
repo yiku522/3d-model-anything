@@ -15,11 +15,11 @@ struct WalkthroughPanel: View {
           .disabled((model.current ?? 0) <= 0)
         VStack(spacing: 2) {
           if let c = model.current, model.photos.indices.contains(c) {
-            Text("Photo \(c + 1) of \(model.photos.count)").font(.subheadline.weight(.semibold)).monospacedDigit()
+            Text("第 \(c + 1) 张，共 \(model.photos.count) 张").font(.subheadline.weight(.semibold)).monospacedDigit()
             Text(detail(model.photos[c])).font(.caption).foregroundStyle(.secondary).lineLimit(1)
           } else {
-            Text("\(model.photos.count) photos").font(.subheadline.weight(.semibold))
-            Text("Tap a camera to jump to it").font(.caption).foregroundStyle(.secondary)
+            Text("\(model.photos.count) 张照片").font(.subheadline.weight(.semibold))
+            Text("点击某个相机即可跳转到对应位置").font(.caption).foregroundStyle(.secondary)
           }
         }
         .frame(maxWidth: .infinity)

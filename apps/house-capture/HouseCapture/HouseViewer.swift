@@ -116,7 +116,7 @@ final class PreviewModel: ObservableObject {
     var failures: [String] = []
     for (i, room) in rooms.enumerated() {
       guard FileManager.default.fileExists(atPath: room.mesh.path) else { continue }
-      loadStage = rooms.count > 1 ? "Loading \(room.name) (\(i + 1) of \(rooms.count))" : "Loading \(room.name)"
+      loadStage = rooms.count > 1 ? "Loading \(room.name) (\(i + 1) of \(rooms.count))" : "正在加载 \(room.name)"
       let toHouse = sessions.first { $0.index == room.session }?.toHouse ?? matrix_identity_float4x4
       let base = Double(i) / Double(rooms.count), span = 1 / Double(rooms.count)
       let result = await Task.detached(priority: .userInitiated) { () -> Result<MeshAsset, Error> in
@@ -139,7 +139,7 @@ final class PreviewModel: ObservableObject {
       loadFraction = base + span
     }
     if loaded.count > 1 {
-      loadStage = "Merging rooms"
+      loadStage = "正在合并房间"
       await Task.detached(priority: .userInitiated) { Self.trimSurroundings(loaded) }.value
     }
     assets = loaded
@@ -283,7 +283,7 @@ final class PreviewModel: ObservableObject {
       }
       if flag.isCancelled {
         // leave partially painted meshes as they are; next open resumes (no cache was written)
-        bakeNote = "Coloring paused"
+        bakeNote = "上色已暂停"
       }
       bakeFraction = nil
     }
@@ -292,7 +292,7 @@ final class PreviewModel: ObservableObject {
   func cancelBake() {
     bakeCancel.cancel()
     bakeFraction = nil
-    bakeNote = "Coloring paused"
+    bakeNote = "上色已暂停"
   }
 
   var canRecolor: Bool { !assets.isEmpty && !allPhotos.isEmpty && bakeFraction == nil }
@@ -587,7 +587,7 @@ struct PreviewScreen: View {
         Spacer()
         VStack(spacing: 10) {
           Image(systemName: "cube.transparent").font(.system(size: 40, weight: .light))
-          Text("Nothing to preview").font(.headline)
+          Text("没有可预览的内容").font(.headline)
           Text(message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
         }
         .padding(28)
@@ -644,22 +644,22 @@ struct PreviewScreen: View {
   private var filterMenu: some View {
     Menu {
       if model.rooms.count > 1 {
-        Section("Rooms") {
+        Section("房间") {
           Button { model.showOnly(nil) } label: {
-            Label("All rooms", systemImage: model.visibleRooms.count == model.rooms.count ? "checkmark" : "square.grid.2x2")
+            Label("所有房间", systemImage: model.visibleRooms.count == model.rooms.count ? "checkmark" : "square.grid.2x2")
           }
           ForEach(model.rooms) { room in
             Toggle(isOn: Binding(get: { model.visibleRooms.contains(room.id) }, set: { model.setRoomVisible(room.id, $0) })) {
               Text(room.name + (model.sessions.count > 1 ? " · \(sessionTitle(room.session))" : ""))
             }
           }
-          Menu("Show only…") {
+          Menu("仅显示…") {
             ForEach(model.rooms) { room in Button(room.name) { model.showOnly(room.id) } }
           }
         }
       }
       if model.sessions.count > 1 {
-        Section("Sessions") {
+        Section("会话") {
           ForEach(model.sessions) { s in
             Toggle(isOn: Binding(get: { model.isSessionVisible(s.index) }, set: { model.setSessionVisible(s.index, $0) })) {
               Text(s.title + (s.aligned ? "" : " (not aligned)"))
@@ -668,10 +668,10 @@ struct PreviewScreen: View {
         }
       }
       Section {
-        Toggle("Surroundings", isOn: Binding(get: { model.showSurroundings }, set: { model.setSurroundings($0) }))
-        Toggle("Statistics", isOn: $model.showStats)
+        Toggle("周围环境", isOn: Binding(get: { model.showSurroundings }, set: { model.setSurroundings($0) }))
+        Toggle("统计", isOn: $model.showStats)
         if model.canRecolor {
-          Button { model.bakeMissing(force: true) } label: { Label("Recolor from photos", systemImage: "paintbrush") }
+          Button { model.bakeMissing(force: true) } label: { Label("根据照片重新上色", systemImage: "paintbrush") }
         }
       }
     } label: {
@@ -701,7 +701,7 @@ struct PreviewScreen: View {
         .transition(.move(edge: .top).combined(with: .opacity))
       } else if let note = model.bakeNote, model.style == .photo || model.style == .sessions {
         Button { model.bakeMissing() } label: {
-          Label(note == "Coloring paused" ? "Coloring paused · Resume" : note, systemImage: "paintbrush")
+          Label(note == "上色已暂停" ? "上色已暂停 · 继续" : note, systemImage: "paintbrush")
             .font(.footnote.weight(.medium))
         }
         .foregroundStyle(.white)
@@ -764,7 +764,7 @@ struct PreviewScreen: View {
     switch model.style {
     case .coverage:
       LegendView(items: [(Color(red: 1, green: 0.23, blue: 0.19), "Needs photos"), (Color(red: 1, green: 0.8, blue: 0), "Almost"),
-                         (Color(red: 0.2, green: 0.78, blue: 0.35), "Done"), (Color(white: 0.6), "Outside room")])
+                         (Color(red: 0.2, green: 0.78, blue: 0.35), "完成"), (Color(white: 0.6), "Outside room")])
     case .sessions:
       LegendView(items: model.sessions.filter { model.isSessionVisible($0.index) }.map { (Color(uiColor: $0.hue), $0.title) })
     default:
@@ -969,9 +969,9 @@ struct ScanVersionReview: View {
     let _ = source.rooms = source.rooms.filter { $0.index == selected.index }
     VStack {
       if room.active != ref {
-        Picker("Compare versions", selection: $showingActive) {
-          Text("Selected scan").tag(false)
-          Text("Current scan").tag(true)
+        Picker("对比版本", selection: $showingActive) {
+          Text("所选扫描").tag(false)
+          Text("当前扫描").tag(true)
         }.pickerStyle(.segmented).padding()
       }
       ScanReview(source: source).id("\(selected.session)-\(selected.index)")

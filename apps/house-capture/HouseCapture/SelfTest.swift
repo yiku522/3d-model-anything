@@ -57,8 +57,8 @@ final class SelfTest {
     defer { try? FileManager.default.removeItem(at: h.url) }
     let z = h.addZone(named: "test")
     h.beginSession(id: "fixture", zone: z.id, alignment: .init(method: "first"))
-    let original = h.recordRoomScan(name: "Office", session: "fixture", index: 0, capturedAt: Date(), matchName: false)!
-    _ = h.recordRoomScan(name: "Office", session: "fixture", index: 1, capturedAt: Date(), matchName: false)
+    let original = h.recordRoomScan(name: "书房", session: "fixture", index: 0, capturedAt: Date(), matchName: false)!
+    _ = h.recordRoomScan(name: "书房", session: "fixture", index: 1, capturedAt: Date(), matchName: false)
     try h.save()
     expect(h.rooms.count == 2, "same-name rooms stay separate when selected by identity")
     try HouseProject.renameRoom(houseID: h.id, roomID: original.id, name: "Studio")
@@ -290,20 +290,20 @@ final class SelfTest {
 
     // --- rooms + history
     try HouseProject.modify(houseID) { h in
-      h.recordRoomScan(name: "Office", session: s1, index: 0, capturedAt: Date(timeIntervalSince1970: 1000))
-      h.recordRoomScan(name: "Kitchen", session: s1, index: 1, capturedAt: Date(timeIntervalSince1970: 1100))
+      h.recordRoomScan(name: "书房", session: s1, index: 0, capturedAt: Date(timeIntervalSince1970: 1000))
+      h.recordRoomScan(name: "厨房", session: s1, index: 1, capturedAt: Date(timeIntervalSince1970: 1100))
       h.recordRoomScan(name: " office ", session: s1, index: 2, capturedAt: Date(timeIntervalSince1970: 1200)) // rescan, same session
       h.endSession(s1)
     }
     house = try HouseProject.load(id: houseID)
-    let office = house.rooms.first { $0.name == "Office" }
+    let office = house.rooms.first { $0.name == "书房" }
     expect(house.rooms.count == 2, "rescan by name doesn't add a room (\(house.rooms.map(\.name)))")
     expect(office?.history.count == 2 && office?.active?.index == 2, "rescan goes into history and becomes active")
     expect(house.session(s1)?.rooms == [0, 1, 2], "session lists its room indices")
     try HouseProject.modify(houseID) { $0.removeRoomScan(session: s1, index: 2) }
     house = try HouseProject.load(id: houseID)
-    expect(house.rooms.first { $0.name == "Office" }?.active?.index == 0, "redo last room: previous scan active again")
-    try HouseProject.modify(houseID) { $0.recordRoomScan(name: "Office", session: s1, index: 2, capturedAt: Date(timeIntervalSince1970: 1200)) }
+    expect(house.rooms.first { $0.name == "书房" }?.active?.index == 0, "redo last room: previous scan active again")
+    try HouseProject.modify(houseID) { $0.recordRoomScan(name: "书房", session: s1, index: 2, capturedAt: Date(timeIntervalSince1970: 1200)) }
 
     // --- saved mesh + photos for session 1 (a 3 m × 2.4 m wall at z = -2 and a floor)
     try writeTestPLY(to: first.bundle.file("mesh/room-0.ply"))
@@ -330,7 +330,7 @@ final class SelfTest {
     let cont = try CaptureController.start(houseID: houseID, zoneID: zone1.id)
     expect(cont.phase == .relocalizing && cont.plan.worldMap != nil, "Continue with a saved map starts relocalizing")
     expect(cont.alignment.method == "unaligned" && cont.alignment.note != nil, "until verified the session is recorded as unaligned")
-    expect(cont.existingRoomNames.sorted() == ["Kitchen", "Office"], "Continue suggests the zone's rooms for rescans")
+    expect(cont.existingRoomNames.sorted() == ["厨房", "书房"], "Continue suggests the zone's rooms for rescans")
     let s2 = cont.plan.sessionID
     expect(s2 != s1, "second session gets its own folder")
 
@@ -470,12 +470,12 @@ final class SelfTest {
     let s3 = third.plan.sessionID
     try HouseProject.modify(houseID) { h in
       h.setAlignment(session: s3, .init(method: "relocalized", residualMeters: 0.02))
-      h.recordRoomScan(name: "Kitchen", session: s3, index: 0, capturedAt: Date(timeIntervalSince1970: 2000))
-      h.recordRoomScan(name: "Hallway", session: s3, index: 1, capturedAt: Date(timeIntervalSince1970: 2100))
+      h.recordRoomScan(name: "厨房", session: s3, index: 0, capturedAt: Date(timeIntervalSince1970: 2000))
+      h.recordRoomScan(name: "走廊", session: s3, index: 1, capturedAt: Date(timeIntervalSince1970: 2100))
       h.endSession(s3)
     }
     house = try HouseProject.load(id: houseID)
-    let kitchen = house.rooms.first { $0.name == "Kitchen" }
+    let kitchen = house.rooms.first { $0.name == "厨房" }
     expect(kitchen?.history.map(\.session) == [s1, s3] && kitchen?.active?.session == s3, "rescan in a later session: history across sessions, newest active")
     if let kitchen, let old = kitchen.history.first {
       try HouseProject.modify(houseID) { $0.setActive(room: kitchen.id, old) }
@@ -514,7 +514,7 @@ final class SelfTest {
     // --- deleting sessions
     try HouseProject.deleteSession(houseID: houseID, sessionID: s3)
     house = try HouseProject.load(id: houseID)
-    expect(house.rooms.first { $0.name == "Kitchen" }?.active?.session == s1 && !house.rooms.contains { $0.name == "Hallway" }, "deleting a session rolls its rooms back")
+    expect(house.rooms.first { $0.name == "厨房" }?.active?.session == s1 && !house.rooms.contains { $0.name == "走廊" }, "deleting a session rolls its rooms back")
     try HouseProject.deleteSession(houseID: houseID, sessionID: s1)
     house = try HouseProject.load(id: houseID)
     expect(house.roomsInZone(zone1.id).isEmpty && house.zone(zone1.id)?.worldMap == nil && !fm.fileExists(atPath: house.url.appendingPathComponent(mapPath).path),

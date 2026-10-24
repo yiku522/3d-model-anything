@@ -107,7 +107,7 @@ extension HouseProject {
     return room
   }
 
-  /// Undo `recordRoomScan` ("Redo last room" / deleting a session): the previous scan of the
+  /// Undo `recordRoomScan` ("重做上一个房间" / deleting a session): the previous scan of the
   /// room becomes active again; a room left with no scans is removed.
   mutating func removeRoomScan(session id: String, index: Int) {
     if let si = sessions.firstIndex(where: { $0.id == id }) { sessions[si].rooms.removeAll { $0 == index } }
@@ -118,7 +118,7 @@ extension HouseProject {
     }
   }
 
-  /// "Use this scan" for a room
+  /// "使用此扫描" for a room
   mutating func setActive(room id: String, _ ref: RoomRef) {
     guard let ri = rooms.firstIndex(where: { $0.id == id }), rooms[ri].history.contains(ref) else { return }
     rooms[ri].active = ref

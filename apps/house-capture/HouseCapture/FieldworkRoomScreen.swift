@@ -26,7 +26,7 @@ struct FieldworkRoomScreen: View {
             FieldworkEyebrow(text: "Saved room")
             Text(room.name).font(.largeTitle.weight(.bold)).tracking(-1)
             if let active = room.active {
-              Text("SCANNED " + active.capturedAt.formatted(date: .abbreviated, time: .shortened).uppercased())
+              Text("已扫描 " + active.capturedAt.formatted(date: .abbreviated, time: .shortened).uppercased())
                 .font(.system(.caption, design: .monospaced)).foregroundStyle(Fieldwork.secondary)
             }
           }
@@ -45,9 +45,9 @@ struct FieldworkRoomScreen: View {
                 Label(busy ? "Preparing room…" : "Share room", systemImage: "square.and.arrow.up")
               }.buttonStyle(FieldworkButtonStyle()).disabled(busy)
               Button { onCapture(house.id, room.zone, nil, room.id) } label: {
-                Label("Continue scanning", systemImage: "viewfinder")
+                Label("继续扫描", systemImage: "viewfinder")
               }.buttonStyle(FieldworkButtonStyle(filled: false)).disabled(!CaptureController.isSupported || busy)
-              Text("Start in this room so the phone can recognize your surroundings.")
+              Text("从这个房间开始，让手机识别周围环境。")
                 .font(.caption).foregroundStyle(Fieldwork.secondary).frame(maxWidth: .infinity, alignment: .leading)
             }
             FieldworkRule()
@@ -56,8 +56,8 @@ struct FieldworkRoomScreen: View {
             } label: {
               Label {
                 VStack(alignment: .leading, spacing: 4) {
-                  Text("Scan history").foregroundStyle(Fieldwork.ink)
-                  Text("\(room.history.count) saved scan\(room.history.count == 1 ? "" : "s")")
+                  Text("扫描历史").foregroundStyle(Fieldwork.ink)
+                  Text("\(room.history.count) 条已保存的扫描")
                     .font(.caption).foregroundStyle(Fieldwork.secondary)
                 }
               } icon: { Image(systemName: "clock").foregroundStyle(Fieldwork.secondary).frame(width: 28) }
@@ -65,13 +65,13 @@ struct FieldworkRoomScreen: View {
             FieldworkRule()
             NavigationLink {
               RoomConnection(house: house, source: room, onSave: reload)
-            } label: { actionRow("Connect room", subtitle: "Match a doorway with another scan", icon: "link") }
+            } label: { actionRow("连接房间", subtitle: "Match a doorway with another scan", icon: "link") }
             FieldworkRule()
-            Text("Photo detail measures useful photography on observed surfaces. It is not the percentage of the room scanned.")
+            Text("拍照细节衡量的是已观测表面上有效拍照的覆盖程度，并非房间被扫描的百分比。")
               .font(.caption).foregroundStyle(Fieldwork.secondary)
           } else {
-            ContentUnavailableView("No active scan", systemImage: "cube.transparent", description: Text("Scan this room to create its first preview."))
-            Button("Scan this room") { onCapture(house.id, room.zone, nil, room.id) }
+            ContentUnavailableView("没有正在进行的扫描", systemImage: "cube.transparent", description: Text("扫描此房间以生成它的首个预览。"))
+            Button("扫描此房间") { onCapture(house.id, room.zone, nil, room.id) }
               .buttonStyle(FieldworkButtonStyle()).disabled(!CaptureController.isSupported)
           }
         }.padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 32)
@@ -80,34 +80,34 @@ struct FieldworkRoomScreen: View {
     .background(Fieldwork.paper).foregroundStyle(Fieldwork.ink)
     .navigationTitle("").navigationBarTitleDisplayMode(.inline)
     .toolbar {
-      ToolbarItem(placement: .principal) { FieldworkEyebrow(text: house?.name ?? "3D Model Anything") }
+      ToolbarItem(placement: .principal) { FieldworkEyebrow(text: house?.name ?? "3D 实景建模") }
       ToolbarItem(placement: .topBarTrailing) {
         Menu {
-          Button("Rename room", systemImage: "pencil") { name = room?.name ?? ""; renaming = true }
-          Button("Delete room", systemImage: "trash", role: .destructive) { deleting = true }
-        } label: { Image(systemName: "ellipsis").frame(width: 44, height: 44) }.accessibilityLabel("Room options")
+          Button("重命名房间", systemImage: "pencil") { name = room?.name ?? ""; renaming = true }
+          Button("删除房间", systemImage: "trash", role: .destructive) { deleting = true }
+        } label: { Image(systemName: "ellipsis").frame(width: 44, height: 44) }.accessibilityLabel("房间选项")
       }
     }
     .onAppear(perform: reload).onChange(of: generation) { _, _ in reload() }
     .sheet(item: $sharing) { ShareSheet(items: [$0]) }
-    .alert("Rename room", isPresented: $renaming) {
-      TextField("Room name", text: $name)
-      Button("Save") { perform { try HouseProject.renameRoom(houseID: houseID, roomID: roomID, name: name) } }
-      Button("Cancel", role: .cancel) {}
+    .alert("重命名房间", isPresented: $renaming) {
+      TextField("房间名称", text: $name)
+      Button("保存") { perform { try HouseProject.renameRoom(houseID: houseID, roomID: roomID, name: name) } }
+      Button("取消", role: .cancel) {}
     }
-    .confirmationDialog("Move room to Recently Deleted?", isPresented: $deleting, titleVisibility: .visible) {
-      Button("Delete room", role: .destructive) {
+    .confirmationDialog("将房间移到“最近删除”？", isPresented: $deleting, titleVisibility: .visible) {
+      Button("删除房间", role: .destructive) {
         perform { try HouseProject.moveRoomToTrash(houseID: houseID, roomID: roomID) }
       }
-    } message: { Text("You can restore this room and its scans from the house's Recently Deleted section.") }
-    .confirmationDialog("Move this scan to Recently Deleted?", isPresented: Binding(get: { deletingScan != nil }, set: { if !$0 { deletingScan = nil } }), titleVisibility: .visible) {
-      Button("Delete scan", role: .destructive) {
+    } message: { Text("你可以从房屋的“最近删除”分区恢复此房间及其扫描。") }
+    .confirmationDialog("将此扫描移到“最近删除”？", isPresented: Binding(get: { deletingScan != nil }, set: { if !$0 { deletingScan = nil } }), titleVisibility: .visible) {
+      Button("删除扫描", role: .destructive) {
         if let ref = deletingScan { perform { try HouseProject.deleteScan(houseID: houseID, roomID: roomID, ref: ref) } }
         deletingScan = nil
       }
     }
-    .alert("Something went wrong", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
-      Button("OK") { error = nil }
+    .alert("出现了问题", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
+      Button("好") { error = nil }
     } message: { Text(error ?? "") }
   }
 
@@ -139,7 +139,7 @@ struct FieldworkRoomScreen: View {
       ForEach(Array(room.history.reversed().enumerated()), id: \.offset) { _, ref in
         VStack(alignment: .leading, spacing: 10) {
           Text(ref.capturedAt.formatted(date: .abbreviated, time: .shortened)).font(.subheadline.weight(.semibold))
-          if ref == room.active { Label("Active scan", systemImage: "checkmark.circle.fill").font(.caption).foregroundStyle(Fieldwork.orange) }
+          if ref == room.active { Label("当前扫描", systemImage: "checkmark.circle.fill").font(.caption).foregroundStyle(Fieldwork.orange) }
           ViewThatFits(in: .horizontal) {
             HStack { versionActions(house, room, ref) }
             VStack(alignment: .leading) { versionActions(house, room, ref) }
@@ -151,14 +151,14 @@ struct FieldworkRoomScreen: View {
   }
   @ViewBuilder private func versionActions(_ house: HouseProject, _ room: HouseProject.Room, _ ref: HouseProject.RoomRef) -> some View {
     if let session = house.session(ref.session) {
-      NavigationLink("Inspect / compare") { ScanVersionReview(house: house, room: room, ref: ref, session: session) }
+      NavigationLink("查看 / 对比") { ScanVersionReview(house: house, room: room, ref: ref, session: session) }
         .buttonStyle(.bordered)
     }
     if ref != room.active {
-      Button("Use this scan") { perform { _ = try HouseProject.modify(houseID) { $0.setActive(room: roomID, ref) } } }.buttonStyle(.bordered)
+      Button("使用此扫描") { perform { _ = try HouseProject.modify(houseID) { $0.setActive(room: roomID, ref) } } }.buttonStyle(.bordered)
     }
     Button(role: .destructive) { deletingScan = ref } label: { Image(systemName: "trash").frame(minWidth: 32, minHeight: 32) }
-      .accessibilityLabel("Delete scan from \(ref.capturedAt.formatted())")
+      .accessibilityLabel("删除来自 \(ref.capturedAt.formatted()) 的扫描")
   }
   private func reload() {
     do {
@@ -194,15 +194,15 @@ private struct FieldworkRoomPreview: View {
   init(source: PreviewSource) { _model = StateObject(wrappedValue: PreviewModel(source: source)) }
   var body: some View {
     VStack(spacing: 12) {
-      Picker("Preview style", selection: $coverage) {
+      Picker("预览样式", selection: $coverage) {
         Text("3D").tag(false)
-        Text("Photo detail").tag(true)
+        Text("拍照细节").tag(true)
       }.pickerStyle(.segmented).disabled(model.phase != .ready || !model.styles.contains(.coverage))
       ZStack {
         if !expanded { PreviewSceneView(scene: model.scene) }
         switch model.phase {
         case .loading: ProgressView(model.loadStage).font(.caption).padding().background(Fieldwork.paper.opacity(0.95))
-        case .empty(let message): ContentUnavailableView("No preview yet", systemImage: "cube.transparent", description: Text(message))
+        case .empty(let message): ContentUnavailableView("暂无可预览内容", systemImage: "cube.transparent", description: Text(message))
         case .ready: EmptyView()
         }
       }
@@ -217,7 +217,7 @@ private struct FieldworkRoomPreview: View {
           model.scene.view.backgroundColor = .black
           expanded = true
         } label: { Image(systemName: "arrow.up.left.and.arrow.down.right").frame(width: 44, height: 44) }
-          .accessibilityLabel("Open full screen viewer")
+          .accessibilityLabel("打开全屏查看器")
       }
     }
     .onAppear { paperBackground(); model.start() }

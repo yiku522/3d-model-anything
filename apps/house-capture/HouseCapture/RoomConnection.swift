@@ -51,26 +51,26 @@ struct RoomConnection: View {
   var body: some View {
     Form {
       Section {
-        Text("Match the same doorway in two rooms. If it wasn't captured in both scans, continue scanning from a saved room and include both sides of the doorway.")
-        Picker("Connect \(source.name) to", selection: $targetID) {
-          Text("Choose room").tag("")
+        Text("在两个房间中匹配同一个门洞。如果某次扫描没有拍到它，请从已保存的房间继续扫描，并把门洞两侧都拍进去。")
+        Picker("将 \(source.name) 连接到", selection: $targetID) {
+          Text("选择房间").tag("")
           ForEach(house.rooms.filter { $0.id != source.id }) { Text($0.name).tag($0.id) }
         }
         DoorwayMap(house: house, room: source, doors: sourceDoors, selected: $sourceDoorID)
-        doorPicker("Doorway in \(source.name)", doors: sourceDoors, selection: $sourceDoorID)
+        doorPicker("\(source.name) 中的门洞", doors: sourceDoors, selection: $sourceDoorID)
         if let target { DoorwayMap(house: house, room: target, doors: targetDoors, selected: $targetDoorID) }
-        doorPicker("Doorway in other room", doors: targetDoors, selection: $targetDoorID)
-        Text("Tap the matching doorway numbers on each room plan. Widths help distinguish similar openings.").font(.caption)
-        Toggle("Rooms face opposite sides of doorway", isOn: $flip)
-        if target?.zone == source.zone { Text("These rooms already share a tracking frame.") }
-        if let target, house.zone(target.zone)?.aligned != true { Text("Choose a room already placed in the house as the reference.") }
-        if sourceDoors.isEmpty || (target != nil && targetDoors.isEmpty) { Text("A doorway is missing. Capture a connecting hallway or doorway before joining these rooms.") }
-        if candidate == nil { Text("Choose compatible doorways (within 20 cm in width) in separately captured rooms with established tracking.").font(.caption) }
-        Button("Preview connection") { previewing = true; checked = true }.disabled(candidate == nil)
-        Text("Check walls, floor levels, and which side of the doorway each room occupies. This is a manual placement, not an automatic match.").font(.caption)
+        doorPicker("另一个房间中的门洞", doors: targetDoors, selection: $targetDoorID)
+        Text("在每个房间的平面图上点击对应的门洞编号。门洞宽度有助于区分相似的开口。").font(.caption)
+        Toggle("房间位于门洞的两侧", isOn: $flip)
+        if target?.zone == source.zone { Text("这些房间已经共享同一个追踪坐标系。") }
+        if let target, house.zone(target.zone)?.aligned != true { Text("选择房屋中已摆放好的某个房间作为参考。") }
+        if sourceDoors.isEmpty || (target != nil && targetDoors.isEmpty) { Text("缺少一个门洞。请先扫描一条连通的走廊或门洞，再连接这两个房间。") }
+        if candidate == nil { Text("在分别扫描、且已完成追踪的两个房间中，选择宽度相差不超过 20 厘米的门洞。").font(.caption) }
+        Button("预览连接") { previewing = true; checked = true }.disabled(candidate == nil)
+        Text("检查墙面、地面高度，以及每个房间占据门洞的哪一侧。这是手动摆放，不是自动匹配。").font(.caption)
         let companions = house.rooms.filter { $0.zone == source.zone && $0.id != source.id }.map(\.name)
-        if !companions.isEmpty { Text("Also moves with this room: " + companions.joined(separator: ", ")).font(.caption) }
-        Button("Save connection") {
+        if !companions.isEmpty { Text("随此房间一起移动：" + companions.joined(separator: ", ")).font(.caption) }
+        Button("保存连接") {
           guard let candidate, let ref = source.active, let session = house.session(ref.session), let zone = candidate.zone(session.zone) else { return }
           do {
             try HouseProject.modify(house.id) { h in
@@ -83,18 +83,18 @@ struct RoomConnection: View {
         if let error { Text(error).foregroundStyle(.red) }
       }
     }
-    .navigationTitle("Connect rooms")
+    .navigationTitle("连接房间")
     .onChange(of: targetID) { _, _ in targetDoorID = ""; checked = false }
     .onChange(of: sourceDoorID) { _, _ in checked = false }
     .onChange(of: targetDoorID) { _, _ in checked = false }
     .onChange(of: flip) { _, _ in checked = false }
     .sheet(isPresented: $previewing) {
-      if let candidate { NavigationStack { HouseViewer(house: candidate).toolbar { Button("Done") { previewing = false } } } }
+      if let candidate { NavigationStack { HouseViewer(house: candidate).toolbar { Button("完成") { previewing = false } } } }
     }
   }
   private func doorPicker(_ title: String, doors: [RoomDoor], selection: Binding<String>) -> some View {
     Picker(title, selection: selection) {
-      Text("Choose doorway").tag("")
+      Text("选择门洞").tag("")
       ForEach(Array(doors.enumerated()), id: \.element.id) { i, door in
         Text(String(format: "Doorway %d · %.2f m wide", i+1, door.width)).tag(door.id)
       }
@@ -140,6 +140,6 @@ private struct DoorwayMap: View {
             .buttonStyle(.plain)
         }
       }
-    }.frame(height: points.isEmpty ? 0 : 180).accessibilityLabel("Doorway plan for \(room.name)")
+    }.frame(height: points.isEmpty ? 0 : 180).accessibilityLabel("\(room.name) 的门洞平面图")
   }
 }

@@ -12,7 +12,7 @@ enum RenderStyle: String, CaseIterable, Identifiable {
     switch self {
     case .photo: "Photo"
     case .coverage: "Coverage"
-    case .sessions: "Sessions"
+    case .sessions: "会话"
     case .clay: "Clay"
     case .wireframe: "Mesh"
     case .roomPlan: "RoomPlan"

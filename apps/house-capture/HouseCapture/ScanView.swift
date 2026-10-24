@@ -198,11 +198,11 @@ final class ScanView: NSObject, ARSCNViewDelegate {
   }
 
   nonisolated func sessionWasInterrupted(_ session: ARSession) {
-    Task { @MainActor in self.onSessionEvent?("ARKit session interrupted") }
+    Task { @MainActor in self.onSessionEvent?("ARKit 会话已中断") }
   }
 
   nonisolated func sessionInterruptionEnded(_ session: ARSession) {
-    Task { @MainActor in self.onSessionEvent?("ARKit session interruption ended") }
+    Task { @MainActor in self.onSessionEvent?("ARKit 会话中断已结束") }
   }
 
 

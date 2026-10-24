@@ -7,10 +7,10 @@ struct CaptureQuality {
   let photos: Int
   var ready: Bool { walls >= 3 && photos >= 8 && percent >= 85 }
   var message: String {
-    if walls < 3 { return "Measuring the room and saving photos automatically." }
-    if photos < 8 { return "Collecting useful viewpoints automatically as you scan." }
-    if ready { return "Good photo detail. Save and review for gaps." }
-    return "Photos are saved automatically as you move around the room."
+    if walls < 3 { return "正在测量房间并自动保存照片。" }
+    if photos < 8 { return "扫描时自动采集有用的视角。" }
+    if ready { return "拍照细节良好。保存后检查遗漏区域。" }
+    return "在你走动时，照片会自动保存。"
   }
 }
 
