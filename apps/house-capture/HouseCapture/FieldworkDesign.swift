@@ -43,7 +43,7 @@ struct FieldworkCorners: Shape {
   func path(in r: CGRect) -> Path {
     var p = Path()
     let d: CGFloat = 14
-    for (x, y, sx, sy) in [(r.minX,r.minY,1.0,1.0),(r.maxX,r.minY,-1.0,1.0),(r.minX,r.maxY,1.0,-1.0),(r.maxX,r.maxY,-1.0,-1.0)] {
+    for (x, y, sx, sy) in [(r.minX,r.minY,1.0,1.0),(r.maxX,r.minY,-1.0,1.0),(r.minX,r.maxY,1.0,-1.0),(r.maxX,r.maxY,-1.0,-1.0)] as [(CGFloat, CGFloat, CGFloat, CGFloat)] {
       p.move(to: CGPoint(x: x, y: y + sy*d)); p.addLine(to: CGPoint(x: x,y: y)); p.addLine(to: CGPoint(x: x+sx*d,y: y))
     }
     return p
