@@ -1,0 +1,67 @@
+# 3D Model Anything — 云端 macOS 自动构建未签名 IPA
+# 用途：在你没有本地 Mac 的情况下，用 GitHub Actions 的 macOS runner 替你编译出 .ipa。
+# 触发：push 到 main 或 在 Actions 页面手动 Run workflow。
+# 产物是「未签名 IPA」，需配合免费 Apple ID + Sideloadly/轻松签/AltStore 自签后才能装进 iPhone。
+
+name: Build iOS (unsigned)
+
+# 个人构建仓库，放开权限以保证 artifact 上传可用
+permissions: write-all
+
+on:
+  workflow_dispatch:        # 允许在 GitHub 网页上手动点一下就触发
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 选择 Xcode（兼容不同 runner 上的路径）
+        run: |
+          if [ -d /Applications/Xcode.app ]; then
+            sudo xcode-select -switch /Applications/Xcode.app
+          else
+            XC=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort | tail -1)
+            [ -n "$XC" ] && sudo xcode-select -switch "$XC"
+          fi
+          xcodebuild -version
+
+      - name: 安装 xcodegen（把 project.yml 转成 .xcodeproj）
+        run: brew install xcodegen
+
+      - name: 降低 project.yml 的 Xcode 版本要求（runner 上的 Xcode 一般 < 27）
+        working-directory: apps/house-capture
+        run: sed -i '' 's/xcodeVersion: "27.0"/xcodeVersion: "16.0"/' project.yml
+
+      - name: 生成 Xcode 工程
+        working-directory: apps/house-capture
+        run: xcodegen generate
+
+      - name: 编译（禁用签名，产出未签名 .app）
+        working-directory: apps/house-capture
+        run: |
+          xcodebuild -project HouseCapture.xcodeproj \
+            -scheme HouseCapture -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: 打成未签名 IPA
+        run: |
+          cd apps/house-capture/build/Build/Products/Release-iphoneos
+          ls -la
+          mkdir -p Payload
+          cp -r HouseCapture.app Payload/
+          zip -r 3d-model-anything-unsigned.ipa Payload
+          ls -la 3d-model-anything-unsigned.ipa
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: 3d-model-anything-unsigned-ipa
+          path: apps/house-capture/build/Build/Products/Release-iphoneos/3d-model-anything-unsigned.ipa
+          retention-days: 30
